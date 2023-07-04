@@ -1,4 +1,3 @@
 # RNVisionProject
 
-React Native with Open Cv 4.1.0
-Detecting KTP using color and Face using cascade
+React Native with Open Cv 4.1.0 for Detecting KTP using color and Face using cascade

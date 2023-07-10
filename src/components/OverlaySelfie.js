@@ -120,7 +120,7 @@ const OverlaySelfie = ({
             xmlns="http://www.w3.org/2000/svg">
             <Path
               d="M126 270C183.99 270 231 215.826 231 149C231 82.9433 185.067 29.2503 126 28.0218V3.33786e-06L252 1.09673e-05V448H120V420.092H201.833C206.252 420.092 209.833 416.51 209.833 412.092V336.657C209.833 332.239 206.252 328.657 201.833 328.657H51.1667C46.7484 328.657 43.1667 332.239 43.1667 336.657V412.092C43.1667 416.51 46.7484 420.092 51.1667 420.092H121V448H0V1.09673e-05L126 0V28.0218C66.9331 29.2503 21 82.9433 21 149C21 215.826 68.0101 270 126 270Z"
-              fill="rgba(0,0,0,0.5)"
+              fill="white"
             />
           </Svg>
         </View>
@@ -131,7 +131,7 @@ const OverlaySelfie = ({
             left: 0,
             height: '100%',
             width: (windowSize.width - overlaySize.width) / 2,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'white',
           }}
         />
         <View
@@ -141,7 +141,7 @@ const OverlaySelfie = ({
             right: 0,
             height: '100%',
             width: (windowSize.width - overlaySize.width) / 2,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'white',
           }}
         />
         <View
@@ -150,16 +150,17 @@ const OverlaySelfie = ({
             top: 0,
             height: overlaySize.top,
             width: overlaySize.width,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'white',
           }}
         />
         <View
           style={{
             position: 'absolute',
             bottom: 0,
-            height: windowSize.height - (overlaySize.height + overlaySize.top),
+            zIndex: 1,
+            height: windowSize.height / 2.5,
             width: overlaySize.width,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'white',
           }}
         />
       </>

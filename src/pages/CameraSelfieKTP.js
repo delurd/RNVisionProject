@@ -62,7 +62,7 @@ const CameraSelfieKTP = ({ onClose }) => {
   const storePicture = async (snapshot) => {
 
     const storagePermissionStatus = await PermissionsAndroid.request('android.permission.WRITE_EXTERNAL_STORAGE')
-    console.log({storagePermissionStatus})
+    console.log({ storagePermissionStatus })
     if (!storagePermissionStatus) {
       return
     }
@@ -75,7 +75,7 @@ const CameraSelfieKTP = ({ onClose }) => {
       await RNFS.mkdir(directoryPath);
     }
     // Generate a unique filename for the snapshot
-    const fileName = `${Date.now()}.jpg`;
+    const fileName = `${Date.now()}.png`;
 
     // Construct the full path for saving the snapshot
     const filePath = `${directoryPath}/${fileName}`;
@@ -94,10 +94,10 @@ const CameraSelfieKTP = ({ onClose }) => {
       skipMetadata: true,
     });
     console.log({ snapshot });
-    
+
     // FACE DETECT
     try {
-      await storePicture(snapshot)
+
       const response = await OpenCvModule.callEventFaceDetect(
         snapshot.path,
         cameraLayoutSize,
@@ -106,7 +106,7 @@ const CameraSelfieKTP = ({ onClose }) => {
       console.log('Face');
       // console.log(response.facesArray);
       if (response.facesArray.length) {
-        console.log('face detenced', response.facesArray)
+        console.log('face detected:', response.facesArray)
         setFaceRect(response.facesArray);
       } else {
         setFaceRect([]);
@@ -130,6 +130,10 @@ const CameraSelfieKTP = ({ onClose }) => {
       setIsKTPDetect(response.KTP);
     } catch (error) {
       console.log(error);
+    }
+
+    if (faceRect.length) {
+      await storePicture(snapshot)
     }
   };
 
@@ -262,6 +266,18 @@ const CameraSelfieKTP = ({ onClose }) => {
           style={{ color: 'white', textAlign: 'center', marginHorizontal: 20 }}>
           Posisikan wajah dan e-KTP kamu berada di bingkai yang tersedia
           kemudian ambil foto.
+        </Text>
+        <Text
+          style={{ color: 'white', textAlign: 'center', marginHorizontal: 20 }}>
+          {/* {
+            !isKTPDetect && !faceRect.length ? 'Wajah & KTP tidak terdeteksi, ulangi lagi' : ''
+          } */}
+          {
+            isKTPDetect && !faceRect.length ? 'Wajah tidak terdeteksi, ulangi lagi' : ''
+          }
+          {/* {
+            !isKTPDetect && faceRect.length ? 'KTP tidak terdeteksi, ulangi lagi' : ''
+          } */}
         </Text>
 
         <View style={{ alignItems: 'center', padding: 32 }}>

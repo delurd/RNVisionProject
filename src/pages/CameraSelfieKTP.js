@@ -59,7 +59,7 @@ const CameraSelfieKTP = ({ onClose }) => {
     setIsCameraActive(true);
   }, []);
 
-  const storePicture = async (snapshot) => {
+  const storePicture = async (path) => {
 
     const storagePermissionStatus = await PermissionsAndroid.request('android.permission.WRITE_EXTERNAL_STORAGE')
     console.log({ storagePermissionStatus })
@@ -81,7 +81,7 @@ const CameraSelfieKTP = ({ onClose }) => {
     const filePath = `${directoryPath}/${fileName}`;
 
     // Write the snapshot data to the file
-    await RNFS.moveFile(snapshot.path, filePath);
+    await RNFS.moveFile(path, filePath);
 
     // Log the saved file path
     console.log('Snapshot saved to:', filePath);
@@ -95,6 +95,9 @@ const CameraSelfieKTP = ({ onClose }) => {
     });
     console.log({ snapshot });
 
+    const detected = {
+      face: false
+    }
     // FACE DETECT
     try {
 
@@ -106,6 +109,7 @@ const CameraSelfieKTP = ({ onClose }) => {
       console.log('Face');
       // console.log(response.facesArray);
       if (response.facesArray.length) {
+        detected.face = true
         console.log('face detected:', response.facesArray)
         setFaceRect(response.facesArray);
       } else {
@@ -116,24 +120,25 @@ const CameraSelfieKTP = ({ onClose }) => {
     }
 
     // KTP DETECT
-    try {
-      const response = await OpenCvModule.callEventKTPDetect(
-        snapshot.path,
-        cameraLayoutSize,
-      );
-      console.log('KTP ' + response.KTP);
-      // console.log(response.globalRect);
+    // try {
+    //   const response = await OpenCvModule.callEventKTPDetect(
+    //     snapshot.path,
+    //     cameraLayoutSize,
+    //   );
+    //   console.log('KTP ' + response.KTP);
+    //   // console.log(response.globalRect);
 
-      let dataRect = [response.globalRect];
+    //   let dataRect = [response.globalRect];
 
-      setDrawKTPRectArr(dataRect);
-      setIsKTPDetect(response.KTP);
-    } catch (error) {
-      console.log(error);
-    }
+    //   setDrawKTPRectArr(dataRect);
+    //   setIsKTPDetect(response.KTP);
+    // } catch (error) {
+    //   console.log(error);
+    // }
 
-    if (faceRect.length) {
-      await storePicture(snapshot)
+    if (detected.face) {
+      // await storePicture(snapshot.path)
+      // await drawShapeOnImage(snapshot.path)
     }
   };
 

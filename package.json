@@ -10,10 +10,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "base-64": "^1.0.0",
     "react": "17.0.2",
     "react-native": "0.68.2",
     "react-native-fs": "^2.20.0",
-    "react-native-svg": "^13.9.0",
+    "react-native-svg": "^13.10.0",
     "react-native-vision-camera": "^2.15.4"
   },
   "devDependencies": {

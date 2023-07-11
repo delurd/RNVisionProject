@@ -179,7 +179,7 @@ public class OpenCvModule extends ReactContextBaseJavaModule{
             Imgproc.GaussianBlur(processImage, processImage,new Size(7,7),1);
             Imgproc.Canny(processImage, processImage, 200, 25);
 
-            
+
             //>>>>>>>>>>>>>PROCESSING
             Mat drawRect = Mat.zeros(image.rows(), image.cols(),CvType.CV_8UC3);
             WritableArray hasil = Arguments.createArray();
@@ -199,7 +199,7 @@ public class OpenCvModule extends ReactContextBaseJavaModule{
                     Imgproc.approxPolyDP(point, point,0.02*Imgproc.arcLength(point, true), true);
                     Integer sumPoin = point.toArray().length;
                     Point[] poinArr = point.toArray();
-                    
+
                     //GET RECT (KOTAK)
                     final Rect react = Imgproc.boundingRect(contour);
                     Imgproc.rectangle(drawRect, new Point(react.x, react.y), new Point(react.x+ react.width, react.y+react.height), new Scalar(255,0,0), 2, Imgproc.LINE_AA, 0);
@@ -248,6 +248,70 @@ public class OpenCvModule extends ReactContextBaseJavaModule{
         return dataReturn;
 
     }
+
+
+    @ReactMethod
+    public void callEventCropImage(String data, ReadableMap windowSize, ReadableMap areaToCrop, Promise promise){
+
+        Mat image = Imgcodecs.imread(data);
+        Mat deSizeImage = new Mat();
+        Imgproc.resize(image, deSizeImage, new Size(windowSize.getDouble("width"),windowSize.getDouble("height")), 0, 0, Imgproc.INTER_AREA);
+
+
+        int topCrop = (int)areaToCrop.getDouble("top");
+        if(topCrop < 0) {
+            return;
+        }
+
+        try {
+//            Mat imageToCrop = new Mat(deSizeImage.rows(), deSizeImage.cols(), CvType.CV_8U);
+            Mat imageToCrop = deSizeImage.clone();
+            Imgproc.cvtColor(imageToCrop,imageToCrop, Imgproc.COLOR_RGBA2RGB,0);
+            Mat mask = new Mat();
+            Mat bgdModel = new Mat();
+            Mat fgdModel = new Mat();
+            Rect areaCut = new Rect( (int)areaToCrop.getDouble("left"), (int)areaToCrop.getDouble("top"), (int)areaToCrop.getDouble("width"), (int)areaToCrop.getDouble("height"));
+
+            Imgproc.grabCut(imageToCrop, mask, areaCut, bgdModel, fgdModel,1, Imgproc.GC_INIT_WITH_RECT);
+
+
+            // draw foreground
+            for (int i = 0; i < imageToCrop.rows(); i++) {
+                for (int j = 0; j < imageToCrop.cols(); j++) {
+                    //Selected a Pixel of Image
+                    double[] dataImage = imageToCrop.get(i, j);
+                    double[] dataMask = mask.get(i,j);
+
+                    // Log.d("TAG", "callEventCropImage: " + dataMask.length + "="+ dataMask[0]+ "-"+ dataImage.length);
+                    if (dataMask[0] == 0 || dataMask[0] == 2) {
+                        dataImage[0] = 0;
+                        dataImage[1] = 0;
+                        dataImage[2] = 0;
+
+                        imageToCrop.put(i,j,dataImage);
+                    }
+
+                }
+            }
+
+
+            ///CROP
+            Mat image_normal_crop= imageToCrop.submat(areaCut);
+            ///
+
+            //SAVE TO LOCAL
+            String folderPath = getReactApplicationContext().getFilesDir().getAbsolutePath();
+            String filePath = folderPath+"/"+ (int)(Math.random()*100000) +"image.png";
+            Imgcodecs.imwrite(filePath, imageToCrop);
+
+            promise.resolve(filePath);
+        }catch (Exception e){
+            promise.reject(e);
+        }
+
+    }
+
+
 
     public WritableMap getSizeMatImage(Mat image){
         WritableMap size = Arguments.createMap();

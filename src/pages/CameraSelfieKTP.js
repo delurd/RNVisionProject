@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
@@ -19,6 +20,8 @@ const {OpenCvModule} = NativeModules;
 const CameraSelfieKTP = ({onClose}) => {
   const [isCameraFront, setIsCameraFront] = useState(true);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [loadingExtractPhoto, setLoadingExtractPhoto] = useState(false);
+  const [viewShotUri, setViewShotUri] = useState('');
 
   const devices = useCameraDevices();
   const device = isCameraFront ? devices.front : devices.back;
@@ -96,6 +99,34 @@ const CameraSelfieKTP = ({onClose}) => {
       setIsKTPDetect(response.KTP);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  //CROP / GRABCUT FACE AREA
+  const getCropedFace = async () => {
+    // console.log('captured');
+    setLoadingExtractPhoto(true);
+
+    const snapshot = await camera.current.takeSnapshot({
+      quality: 50,
+      skipMetadata: true,
+    });
+    console.log(snapshot);
+
+    //CROP / GRABCUT FACE AREA
+    try {
+      const response = await OpenCvModule.callEventCropImage(
+        snapshot.path,
+        cameraLayoutSize,
+        areaFaceDetection,
+      );
+
+      console.log(response);
+      setViewShotUri(response);
+      setIsCameraActive(true)
+      setLoadingExtractPhoto(false);
+    } catch (error) {
+      setLoadingExtractPhoto(false);
     }
   };
 
@@ -190,6 +221,30 @@ const CameraSelfieKTP = ({onClose}) => {
       </View>
     );
 
+  if (viewShotUri)
+    return (
+      <View>
+        <Image
+          style={{
+            height: cameraLayoutSize.height,
+            width: '100%',
+            backgroundColor: 'black',
+            resizeMode:'contain',
+          }}
+          source={{uri: 'file://' + viewShotUri}}
+        />
+        <TouchableOpacity
+          onPress={() => {
+            setViewShotUri('');
+            setIsCameraActive(true)
+          }}>
+          <Text style={{fontSize: 18, fontWeight: 'bold', padding: 10}}>
+            {'< '}Back
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+
   return (
     <View style={{flex: 1}}>
       <View
@@ -266,9 +321,13 @@ const CameraSelfieKTP = ({onClose}) => {
           </TouchableOpacity>
           <TouchableOpacity
             key={'CAPTURE'}
-            onPress={takePicture}
+            onPress={() => {
+              !loadingExtractPhoto && takePicture(), getCropedFace();
+            }}
             style={{
-              backgroundColor: 'white',
+              backgroundColor: loadingExtractPhoto
+                ? 'rgba(255,255,255,0.3)'
+                : 'white',
               width: 80,
               height: 80,
               borderRadius: 50,
@@ -287,7 +346,13 @@ const CameraSelfieKTP = ({onClose}) => {
                 borderWidth: 4,
                 borderRadius: 500,
                 borderColor: 'black',
-              }}></View>
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              {loadingExtractPhoto ? (
+                <ActivityIndicator size={'large'} color={'#000000'} />
+              ) : null}
+            </View>
           </TouchableOpacity>
         </View>
       </View>

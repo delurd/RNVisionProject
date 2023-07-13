@@ -8,6 +8,7 @@ import {
   Linking,
   ActivityIndicator,
   Dimensions,
+  PermissionsAndroid,
 } from 'react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -59,16 +60,48 @@ const CameraSelfieKTP = ({ onClose }) => {
     setIsCameraActive(true);
   }, []);
 
+  const storePicture = async (path) => {
+
+    const storagePermissionStatus = await PermissionsAndroid.request('android.permission.WRITE_EXTERNAL_STORAGE')
+    console.log({ storagePermissionStatus })
+    if (!storagePermissionStatus) {
+      return
+    }
+    // Get the DCIM/Camera directory path
+    const directoryPath = RNFS.PicturesDirectoryPath + '/RNVision';
+
+    // Check if the directory exists, and create it if not
+    const directoryExists = await RNFS.exists(directoryPath);
+    if (!directoryExists) {
+      await RNFS.mkdir(directoryPath);
+    }
+    // Generate a unique filename for the snapshot
+    const fileName = `${Date.now()}.png`;
+
+    // Construct the full path for saving the snapshot
+    const filePath = `${directoryPath}/${fileName}`;
+
+    // Write the snapshot data to the file
+    await RNFS.moveFile(path, filePath);
+
+    // Log the saved file path
+    console.log('Snapshot saved to:', filePath);
+  }
+
   const takePicture = async () => {
     console.log('captured');
     const snapshot = await camera.current.takeSnapshot({
       quality: 5,
       skipMetadata: true,
     });
-    // console.log(snapshot);
+    console.log({ snapshot });
 
+    const detected = {
+      face: false
+    }
     // FACE DETECT
     try {
+
       const response = await OpenCvModule.callEventFaceDetect(
         snapshot.path,
         cameraLayoutSize,
@@ -77,6 +110,8 @@ const CameraSelfieKTP = ({ onClose }) => {
       console.log('Face');
       // console.log(response.facesArray);
       if (response.facesArray.length) {
+        detected.face = true
+        console.log('face detected:', response.facesArray)
         setFaceRect(response.facesArray);
       } else {
         setFaceRect([]);
@@ -86,23 +121,26 @@ const CameraSelfieKTP = ({ onClose }) => {
     }
 
     // KTP DETECT
-    try {
-      const response = await OpenCvModule.callEventKTPDetect(
-        snapshot.path,
-        cameraLayoutSize,
-      );
-      console.log('KTP ' + response.KTP);
-      // console.log(response.globalRect);
+    // try {
+    //   const response = await OpenCvModule.callEventKTPDetect(
+    //     snapshot.path,
+    //     cameraLayoutSize,
+    //   );
+    //   console.log('KTP ' + response.KTP);
+    //   // console.log(response.globalRect);
 
-      let dataRect = [response.globalRect];
+    //   let dataRect = [response.globalRect];
 
-      setDrawKTPRectArr(dataRect);
-      setIsKTPDetect(response.KTP);
-    } catch (error) {
-      console.log(error);
+    //   setDrawKTPRectArr(dataRect);
+    //   setIsKTPDetect(response.KTP);
+    // } catch (error) {
+    //   console.log(error);
+    // }
+
+    if (detected.face) {
+      getCropedFace()
     }
 
-    getCropedFace()
   };
 
   //CROP / GRABCUT FACE AREA
@@ -286,6 +324,18 @@ const CameraSelfieKTP = ({ onClose }) => {
           style={{ color: 'white', textAlign: 'center', marginHorizontal: 20 }}>
           Posisikan wajah dan e-KTP kamu berada di bingkai yang tersedia
           kemudian ambil foto.
+        </Text>
+        <Text
+          style={{ color: 'white', textAlign: 'center', marginHorizontal: 20 }}>
+          {/* {
+            !isKTPDetect && !faceRect.length ? 'Wajah & KTP tidak terdeteksi, ulangi lagi' : ''
+          } */}
+          {
+            isKTPDetect && !faceRect.length ? 'Wajah tidak terdeteksi, ulangi lagi' : ''
+          }
+          {/* {
+            !isKTPDetect && faceRect.length ? 'KTP tidak terdeteksi, ulangi lagi' : ''
+          } */}
         </Text>
 
         <View style={{ alignItems: 'center', padding: 32 }}>

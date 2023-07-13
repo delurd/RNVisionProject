@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Dimensions,
   PermissionsAndroid,
+  ToastAndroid,
 } from 'react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -18,6 +19,7 @@ import {
 } from 'react-native-vision-camera';
 import OverlaySelfie from '../components/OverlaySelfie';
 import RNFS from 'react-native-fs'
+import { uploadImage } from '../tools/supabase';
 const { OpenCvModule } = NativeModules;
 
 const CameraSelfieKTP = ({ onClose }) => {
@@ -61,15 +63,14 @@ const CameraSelfieKTP = ({ onClose }) => {
     setIsCameraActive(true);
   }, []);
 
-  const storePicture = async (path) => {
-
+  const storePicture = async (path, bucket) => {
     const storagePermissionStatus = await PermissionsAndroid.request('android.permission.WRITE_EXTERNAL_STORAGE')
     console.log({ storagePermissionStatus })
     if (!storagePermissionStatus) {
       return
     }
     // Get the DCIM/Camera directory path
-    const directoryPath = RNFS.PicturesDirectoryPath + '/RNVision';
+    const directoryPath = RNFS.PicturesDirectoryPath + '/RNVision/' + bucket;
 
     // Check if the directory exists, and create it if not
     const directoryExists = await RNFS.exists(directoryPath);
@@ -82,11 +83,15 @@ const CameraSelfieKTP = ({ onClose }) => {
     // Construct the full path for saving the snapshot
     const filePath = `${directoryPath}/${fileName}`;
 
+    
     // Write the snapshot data to the file
     await RNFS.moveFile(path, filePath);
+    // uploadImage(bucket, filePath)
 
     // Log the saved file path
+    const excludedPath = '/storage/emulated/0/';
     console.log('Snapshot saved to:', filePath);
+    ToastAndroid.show(`Snapshot saved to: ${filePath.replace(excludedPath, '')}`, 5000)
   }
 
   const takePicture = async () => {
@@ -139,7 +144,7 @@ const CameraSelfieKTP = ({ onClose }) => {
     // }
 
     if (detected.face) {
-      storePicture(snapshot.path)
+      await storePicture(snapshot.path, 'faces')
     }
 
   };
@@ -165,7 +170,7 @@ const CameraSelfieKTP = ({ onClose }) => {
 
       console.log({grabcut: response});
       setViewShotUri(response);
-      storePicture(response)
+      await storePicture(response, 'segmentated')
       setIsCameraActive(true)
       setLoadingExtractPhoto(false);
     } catch (error) {

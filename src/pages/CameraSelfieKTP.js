@@ -7,17 +7,18 @@ import {
   Image,
   Linking,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   useCameraDevices,
   Camera,
   useFrameProcessor,
 } from 'react-native-vision-camera';
 import OverlaySelfie from '../components/OverlaySelfie';
-const {OpenCvModule} = NativeModules;
+const { OpenCvModule } = NativeModules;
 
-const CameraSelfieKTP = ({onClose}) => {
+const CameraSelfieKTP = ({ onClose }) => {
   const [isCameraFront, setIsCameraFront] = useState(true);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [loadingExtractPhoto, setLoadingExtractPhoto] = useState(false);
@@ -100,6 +101,8 @@ const CameraSelfieKTP = ({onClose}) => {
     } catch (error) {
       console.log(error);
     }
+
+    getCropedFace()
   };
 
   //CROP / GRABCUT FACE AREA
@@ -139,13 +142,13 @@ const CameraSelfieKTP = ({onClose}) => {
           rect.size.width >= areaFaceDetection.width / 1.5 &&
           rect.position.top >= areaFaceDetection.top &&
           rect.position.top + rect.size.height <=
-            areaFaceDetection.top + areaFaceDetection.height &&
+          areaFaceDetection.top + areaFaceDetection.height &&
           rect.position.left >=
-            areaFaceDetection.left - areaFaceDetection.width * (10 / 100) &&
+          areaFaceDetection.left - areaFaceDetection.width * (10 / 100) &&
           rect.position.left + rect.size.width <=
-            areaFaceDetection.left +
-              areaFaceDetection.width +
-              areaFaceDetection.width * (10 / 100)
+          areaFaceDetection.left +
+          areaFaceDetection.width +
+          areaFaceDetection.width * (10 / 100)
         ) {
           color = 'green';
         }
@@ -164,12 +167,12 @@ const CameraSelfieKTP = ({onClose}) => {
         if (
           rect.position.left >= areaKtpDetection.left &&
           rect.position.left + rect.size.width <=
-            areaKtpDetection.left + areaKtpDetection.width &&
+          areaKtpDetection.left + areaKtpDetection.width &&
           rect.position.top >=
-            areaKtpDetection.bottom - areaKtpDetection.height &&
+          areaKtpDetection.bottom - areaKtpDetection.height &&
           rect.position.top + rect.size.height <= areaKtpDetection.bottom &&
           rect.size.width >
-            areaKtpDetection.width - areaKtpDetection.width / 1.5
+          areaKtpDetection.width - areaKtpDetection.width / 1.5
         ) {
           color = 'green';
         }
@@ -180,21 +183,21 @@ const CameraSelfieKTP = ({onClose}) => {
       faceRect.map(faceDetect => {
         if (
           drawKTPRectArr[0].size.width >=
-            areaKtpDetection.width - areaKtpDetection.width / 1.3 &&
+          areaKtpDetection.width - areaKtpDetection.width / 1.3 &&
           faceDetect.position.left >=
-            areaKtpDetection.left +
-              areaKtpDetection.width -
-              areaKtpDetection.width / 2 &&
+          areaKtpDetection.left +
+          areaKtpDetection.width -
+          areaKtpDetection.width / 2 &&
           // faceDetect.position.left >=
           //   areaKtpDetection.left +
           //     areaKtpDetection.width -
           //     faceDetect.size.width * 3 &&
           faceDetect.position.left + faceDetect.size.width <
-            areaKtpDetection.left + areaKtpDetection.width &&
+          areaKtpDetection.left + areaKtpDetection.width &&
           faceDetect.position.top >=
-            areaKtpDetection.bottom - areaKtpDetection.height / 1.3 &&
+          areaKtpDetection.bottom - areaKtpDetection.height / 1.3 &&
           faceDetect.position.top + faceDetect.size.height <=
-            areaKtpDetection.bottom - areaKtpDetection.height / 3.5
+          areaKtpDetection.bottom - areaKtpDetection.height / 3.5
         ) {
           // console.log('ktp detects');
           color = 'green';
@@ -216,29 +219,29 @@ const CameraSelfieKTP = ({onClose}) => {
   //RETURN
   if (device == null)
     return (
-      <View style={{flex: 1, backgroundColor: 'black', alignItems: 'center'}}>
-        <Text style={{color: 'white'}}>Loading...</Text>
+      <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center' }}>
+        <Text style={{ color: 'white' }}>Loading...</Text>
       </View>
     );
 
   if (viewShotUri)
     return (
-      <View>
+      <View style={{backgroundColor:'black', height: Dimensions.get('window').height}}>
         <Image
           style={{
             height: cameraLayoutSize.height,
             width: '100%',
             backgroundColor: 'black',
-            resizeMode:'contain',
+            resizeMode: 'contain',
           }}
-          source={{uri: 'file://' + viewShotUri}}
+          source={{ uri: 'file://' + viewShotUri }}
         />
         <TouchableOpacity
           onPress={() => {
             setViewShotUri('');
             setIsCameraActive(true)
           }}>
-          <Text style={{fontSize: 18, fontWeight: 'bold', padding: 10}}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', padding: 10 }}>
             {'< '}Back
           </Text>
         </TouchableOpacity>
@@ -246,7 +249,7 @@ const CameraSelfieKTP = ({onClose}) => {
     );
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <View
         onLayout={e => {
           setCameraLayoutSize({
@@ -265,7 +268,7 @@ const CameraSelfieKTP = ({onClose}) => {
           style={[StyleSheet.absoluteFill]}
           isActive={isCameraActive}
           photo={true}
-          // frameProcessor={frameProcessor}
+        // frameProcessor={frameProcessor}
         />
         <OverlaySelfie
           setAreaKTP={setAreaKtpDetection}
@@ -280,12 +283,12 @@ const CameraSelfieKTP = ({onClose}) => {
           padding: 24,
         }}>
         <Text
-          style={{color: 'white', textAlign: 'center', marginHorizontal: 20}}>
+          style={{ color: 'white', textAlign: 'center', marginHorizontal: 20 }}>
           Posisikan wajah dan e-KTP kamu berada di bingkai yang tersedia
           kemudian ambil foto.
         </Text>
 
-        <View style={{alignItems: 'center', padding: 32}}>
+        <View style={{ alignItems: 'center', padding: 32 }}>
           <TouchableOpacity
             onPress={() => {
               setIsCameraActive(false);
@@ -300,7 +303,7 @@ const CameraSelfieKTP = ({onClose}) => {
               bottom: 20,
               left: '4%',
             }}>
-            <Text style={{color: 'white', fontSize: 38}}>✕</Text>
+            <Text style={{ color: 'white', fontSize: 38 }}>✕</Text>
           </TouchableOpacity>
           <TouchableOpacity
             key={'ROTATE'}
@@ -315,14 +318,14 @@ const CameraSelfieKTP = ({onClose}) => {
               bottom: 12,
               right: '0%',
             }}>
-            <Text style={{color: 'white', fontSize: 60, fontWeight: '500'}}>
+            <Text style={{ color: 'white', fontSize: 60, fontWeight: '500' }}>
               ⟳
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             key={'CAPTURE'}
             onPress={() => {
-              !loadingExtractPhoto && takePicture(), getCropedFace();
+              !loadingExtractPhoto && takePicture();
             }}
             style={{
               backgroundColor: loadingExtractPhoto
@@ -360,36 +363,36 @@ const CameraSelfieKTP = ({onClose}) => {
       {/* KTP RECT (FOR DEBUG)*/}
       {isKTPDetect
         ? drawKTPRectArr.map((data, index) => (
-            <View
-              key={index}
-              style={{
-                borderWidth: 1,
-                borderColor: 'red',
-                position: 'absolute',
-                left: data.position.left,
-                top: data.position.top,
-                height: data.size.height,
-                width: data.size.width,
-              }}></View>
-          ))
+          <View
+            key={index}
+            style={{
+              borderWidth: 1,
+              borderColor: 'red',
+              position: 'absolute',
+              left: data.position.left,
+              top: data.position.top,
+              height: data.size.height,
+              width: data.size.width,
+            }}></View>
+        ))
         : null}
 
       {/* FACE RECT (FOR DEBUG)*/}
       {faceRect.length
         ? faceRect.map((face, index) => (
-            <View
-              key={index}
-              style={{
-                borderWidth: 1,
-                borderColor: 'red',
-                position: 'absolute',
-                left: face.position.left,
-                top: face.position.top,
-                height: face.size.height,
-                width: face.size.width,
-              }}
-            />
-          ))
+          <View
+            key={index}
+            style={{
+              borderWidth: 1,
+              borderColor: 'red',
+              position: 'absolute',
+              left: face.position.left,
+              top: face.position.top,
+              height: face.size.height,
+              width: face.size.width,
+            }}
+          />
+        ))
         : null}
     </View>
   );

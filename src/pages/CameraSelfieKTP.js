@@ -17,6 +17,7 @@ import {
   useFrameProcessor,
 } from 'react-native-vision-camera';
 import OverlaySelfie from '../components/OverlaySelfie';
+import RNFS from 'react-native-fs'
 const { OpenCvModule } = NativeModules;
 
 const CameraSelfieKTP = ({ onClose }) => {
@@ -138,7 +139,7 @@ const CameraSelfieKTP = ({ onClose }) => {
     // }
 
     if (detected.face) {
-      getCropedFace()
+      storePicture(snapshot.path)
     }
 
   };
@@ -152,7 +153,7 @@ const CameraSelfieKTP = ({ onClose }) => {
       quality: 50,
       skipMetadata: true,
     });
-    console.log(snapshot);
+    // console.log({snapshot});
 
     //CROP / GRABCUT FACE AREA
     try {
@@ -162,8 +163,9 @@ const CameraSelfieKTP = ({ onClose }) => {
         areaFaceDetection,
       );
 
-      console.log(response);
+      console.log({grabcut: response});
       setViewShotUri(response);
+      storePicture(response)
       setIsCameraActive(true)
       setLoadingExtractPhoto(false);
     } catch (error) {
@@ -375,7 +377,7 @@ const CameraSelfieKTP = ({ onClose }) => {
           <TouchableOpacity
             key={'CAPTURE'}
             onPress={() => {
-              !loadingExtractPhoto && takePicture();
+              !loadingExtractPhoto && takePicture(), getCropedFace();
             }}
             style={{
               backgroundColor: loadingExtractPhoto
